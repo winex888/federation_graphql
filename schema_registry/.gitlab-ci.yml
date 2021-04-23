@@ -1,0 +1,46 @@
+image: $BUILDER_IMAGE
+
+include:
+    #include autoadd build version file
+  - project: 'center_m/infrastructure/infra'
+    ref: master
+    file: 'version.yml'
+    #include configuration jobs extensions
+  - project: 'center_m/infrastructure/infra'
+    ref: master
+    file: 'extend.yml'
+
+stages:
+  - init
+  - test
+  - build
+  - deploy
+
+test:
+  stage: test
+  tags: [docker]
+  allow_failure: true
+  services:
+    - name: $kt_postgres_image
+      alias: db_schema_registry
+  variables:
+    ENV_FOR_DYNACONF: testing
+    POSTGRES_DB: test_db
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: postgres
+  before_script:
+    - apt update && apt install -y git && apt install -y postgresql-client
+    - python3 -m pip install --index-url $PYPI_REGISTRY --extra-index-url $PYPI_KRONTECH_REGISTRY -r ./requirements.txt
+  script:
+    - pytest
+
+lint:
+  extends: .python_lint
+  variables:
+    project: "schema_registry"
+
+docker_build:
+  extends: .docker_config
+
+deb_build:
+  extends: .deb_config

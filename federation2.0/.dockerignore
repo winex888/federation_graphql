@@ -1,0 +1,11 @@
+.git
+.idea
+.dockerignore
+.gitignore
+.gitattributes
+node_modules/
+.gitlab-ci.yml
+packaging
+Dockerfile
+README.md
+doc

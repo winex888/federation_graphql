@@ -1,0 +1,9 @@
+Package: federation
+Version: {{ VERSION }}
+Section: main
+Architecture: amd64
+Depends: nodejs
+Maintainer: Krontech ltd.
+Description: apollo for centr-m project.
+ Сервис GraphQL .
+ commit: {{ COMMIT }}

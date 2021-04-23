@@ -1,0 +1,63 @@
+image: $BUILDER_IMAGE
+
+include:
+    #include autoadd build version file
+  - project: 'center_m/infrastructure/infra'
+    ref: master
+    file: 'version.yml'
+    #include configuration extensions to the jobs    
+  - project: 'center_m/infrastructure/infra'
+    ref: master
+    file: 'extend.yml'
+
+stages:
+  - init
+  - dep_download
+  - build
+  - deploy
+
+
+npm_install:
+  stage: dep_download
+  tags: [docker]
+  image: $kt_node8_image
+  script:
+    - npm config set registry $NPM_REGISTRY
+    - npm install --unsafe-perm
+  artifacts:
+    paths:
+      - 'node_modules'
+    expire_in: 1 hour
+  
+
+docker_build:
+  extends: .docker_config
+  script:
+   - docker build --build-arg NPM_REGISTRY="${NPM_REGISTRY}"
+                  --build-arg VERSION=$product_version
+                  --build-arg COMMIT="${CI_COMMIT_SHA}"
+                  --tag $IMAGE_NAME:$product_version
+                  --tag $IMAGE_NAME:latest .
+   - docker push $IMAGE_NAME:$product_version && docker push $IMAGE_NAME:latest
+
+deb_build:
+  extends: .deb_config
+  dependencies:
+    - npm_install
+    - set_version
+  variables:
+    package_dir: package_dir
+    target: $package_dir/opt/$CI_PROJECT_NAME
+  script:
+    - mv ver.txt VERSION
+    - product_version=`head -1  VERSION` # в переменную попадает версия с автобилдом чтонаходится в version.yml
+    - sed -i -e "s/{{ VERSION }}/${product_version}/g; s/{{ PROJECT_NAME }}/${CI_PROJECT_NAME}/g; s/{{ COMMIT }}/${CI_COMMIT_SHA}/g" ./packaging/debian/control
+    - if [ -f "./packaging/service.service" ]; then sed -i -e "s/{{ PROJECT_NAME }}/${CI_PROJECT_NAME}/g" ./packaging/service.service; mv ./packaging/service.service ./packaging/${CI_PROJECT_NAME}.service; fi
+    - mkdir -p ./$package_dir/{DEBIAN,etc/systemd/system/} $target   
+    - cp -r ./packaging/debian/* ./$package_dir/DEBIAN/ 
+    - cp ./packaging/*.service ./$package_dir/etc/systemd/system/   
+    - echo -e "$product_version\n$CI_COMMIT_REF_NAME\n$CI_COMMIT_SHA" > $target/.commit # создаем файл с версией и коммит хешем  
+    
+    - rsync --archive --verbose --exclude '*.git' --exclude 'packaging' --exclude $package_dir ./* $target
+    - fakeroot dpkg-deb --build $package_dir && dpkg-name *.deb
+

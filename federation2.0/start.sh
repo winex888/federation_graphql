@@ -1,0 +1,1 @@
+npm run fed && npm run start

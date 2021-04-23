@@ -1,0 +1,8 @@
+Package: schema-registry
+Version: {{ VERSION }}
+Section: main
+Architecture: amd64
+Depends: python3-all, kt-config
+Maintainer: Krontech ltd.
+Description: {{ PROJECT_NAME }} for centr-m project.
+ commit: {{ COMMIT }}

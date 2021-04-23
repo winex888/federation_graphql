@@ -1,0 +1,12 @@
+.git
+.dockerignore
+.gitignore
+.gitattributes
+.venv
+.isort.cfg
+.pre-commit-config.yaml
+Makefile
+Dockerfile
+README.md
+requirements.dev.txt
+docs

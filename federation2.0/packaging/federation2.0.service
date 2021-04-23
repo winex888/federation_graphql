@@ -1,0 +1,14 @@
+[Unit]
+Description=federation2.0
+After=syslog.target network.target
+
+[Service]
+#EnvironmentFile=/opt/infra_gw/config
+Type=simple
+User=root
+WorkingDirectory=/opt/federation2.0
+ExecStart=/usr/bin/node src/index.js
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target

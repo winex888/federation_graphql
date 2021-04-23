@@ -1,0 +1,11 @@
+default:
+  HOST: 0.0.0.0
+  HOSTN: 0.0.0.0
+  PORT: 8301
+  NGINX_PORT: 8301
+  DEBUG: false
+  NAME: SCHEMA_REGESTRY
+  S_HOST: 0.0.0.0
+  S_PORT: 8305
+  S_ENDPOINT: 'graphql'
+  ENDPOINT: 'graphql'

@@ -1,0 +1,17 @@
+faker
+# web server
+aiohttp==3.6.2
+aiohttp-cors==0.7.0
+aiohttp-graphql==1.0.0
+
+# graphql
+graphene==2.1.8
+graphql-core==2.3.2
+graphql-relay==2.0.1
+graphql-server-core==2.0.0
+gql==2.0.0
+graphene-federation
+
+# configuration
+dynaconf==2.2.3
+pyyaml==5.3.1

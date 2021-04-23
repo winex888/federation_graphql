@@ -1,0 +1,75 @@
+version: '3.2'
+services:
+  gw:
+    build:
+      context: ./federation2.0
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    command: node src/index.js
+    ports:
+      - 8200:8200
+    depends_on:
+      - schema_registry
+    environment:
+      PORT: 8200
+      SCHEMA_REGESTRY_HOST: schema_registry
+      SCHEMA_REGESTRY_PORT: 8310
+      SCHEMA_REGESTRY_URL: '/schema'
+
+  schema_registry:
+    build:
+      context: ./schema_registry
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    command: bash -c "alembic upgrade head && python app.py"
+    ports:
+      - 8310
+    depends_on:
+      - db
+    environment:
+      ENV_FOR_DYNACONF: local
+      DYNACONF_PORT: 8310
+      DYNACONF_POSTGRES__host: db
+      DYNACONF_POSTGRES__port: 5432
+      DYNACONF_POSTGRES__user: postgres
+      DYNACONF_POSTGRES__password: postgres
+      DYNACONF_POSTGRES__database: schema_registry
+
+  service1:
+    build:
+      context: ./serv1
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    command: bash -c "python app.py"
+    environment:
+      PORT: 8302
+      NGINX_PORT: 8301
+      HOSTN: nginx
+      NAME: service1
+      S_HOST: schema_registry
+      S_PORT: 8310
+      S_ENDPOINT: '/graphql'
+    ports:
+      - 8302-8307
+    depends_on:
+      - schema_registry
+  db:
+    image: postgres
+    restart: unless-stopped
+    volumes:
+      - ./volumes/db:/var/lib/postgresql/data
+    ports:
+      - 50004:5432
+    environment:
+      POSTGRES_DB: schema_registry
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
+  nginx:
+      image: nginx:1.18.0-alpine
+      ports:
+      - 8301
+      volumes:
+        - ./default.conf:/etc/nginx/conf.d/default.conf
+      depends_on:
+        - gw
