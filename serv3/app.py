@@ -75,11 +75,11 @@ class GType(graphene.ObjectType):
 class Query(graphene.ObjectType):
 
     service3 = graphene.String()
-    ints = graphene.List(graphene.Int)
+    gtypes = graphene.List(GType)
 
-    async def resolve_goods(self, _info, **kwargs):
+    async def resolve_gtypes(self, _info, **kwargs):
         logger.error('service3')
-        return [2, 4, 5, 6]
+        return [GType(**item) for item in gtype]
 
     @classmethod
     async def resolve_service3(cls, _root, _info, **_kwargs):
